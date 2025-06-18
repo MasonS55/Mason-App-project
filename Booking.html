@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Booking App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h2>🏖️ Holiday Booking</h2>
+    <button onclick="window.location.href='index.html'" style="margin-bottom: 10px;">🏠 Return to Dashboard</button>
+    
+
+    <label for="destination">Destination:</label>
+    <select id="destination">
+      <option value="beach">Beach (R200/day)</option>
+      <option value="mountains">Mountains (R150/day)</option>
+      <option value="city">City Tour (R180/day)</option>
+    </select>
+
+    <label for="days">Number of Days:</label>
+    <input type="number" id="days" placeholder="Enter days" />
+
+    <label for="transport">Mode of Transport:</label>
+    <select id="transport">
+      <option value="bus">Bus</option>
+      <option value="taxi">Taxi</option>
+      <option value="self">Self-Drive (Toll applies)</option>
+      <option value="plane">Plane</option>
+    </select>
+
+    <button onclick="bookHoliday()">Book Holiday</button>
+
+    <h3>✈️ Optional: Book Flight</h3>
+
+    <label for="flightDestination">Flight Destination:</label>
+    <input type="text" id="flightDestination" placeholder="e.g. Cape Town" />
+
+    <label for="tripType">Trip Type:</label>
+    <select id="tripType">
+      <option value="oneway">One-way</option>
+      <option value="round">Round-trip</option>
+    </select>
+
+    <label for="classType">Flight Class:</label>
+    <select id="classType">
+      <option value="economy">Economy (R300)</option>
+      <option value="business">Business (R600)</option>
+    </select>
+
+    <button onclick="bookFlight()">Book Flight</button>
+
+    <h3>📋 Bookings Summary</h3>
+    <button onclick="viewBookings()">View Bookings</button>
+    <p id="bookingResult"></p>
+    <p id="flightResult"></p>
+    <ul id="bookingList"></ul>
+  </div>
+
+  <script>
+    let balance = 10000; // Starting ZAR balance
+    let bookings = [];
+
+    function formatZAR(amount) {
+      return new Intl.NumberFormat('en-ZA', {
+        style: 'currency',
+        currency: 'ZAR'
+      }).format(amount);
+    }
+
+    function bookHoliday() {
+      const rates = { beach: 200, mountains: 150, city: 180 };
+      const tollRatePerDay = 50;
+
+      const destination = document.getElementById("destination").value;
+      const days = parseInt(document.getElementById("days").value);
+      const transport = document.getElementById("transport").value;
+
+      if (isNaN(days) || days <= 0) {
+        alert("Please enter a valid number of days.");
+        return;
+      }
+
+      let baseCost = rates[destination] * days;
+      let transportCost = 0;
+
+      if (transport === "self") {
+        transportCost = tollRatePerDay * days;
+      } else if (transport === "plane") {
+        transportCost = 500 + (days * 100); // example plane cost
+      }
+
+      const totalCost = baseCost + transportCost;
+
+      if (balance >= totalCost) {
+        balance -= totalCost;
+        const newBooking = {
+          destination,
+          days,
+          transport,
+          totalCost,
+          flight: null
+        };
+        bookings.push(newBooking);
+        document.getElementById("bookingResult").textContent = 
+          `Holiday booked: ${days} day(s) at the ${destination} via ${transport}. Total: ${formatZAR(totalCost)}`;
+      } else {
+        document.getElementById("bookingResult").textContent = "Insufficient funds for this booking.";
+      }
+    }
+
+    function bookFlight() {
+      const destination = document.getElementById("flightDestination").value.trim();
+      const tripType = document.getElementById("tripType").value;
+      const classType = document.getElementById("classType").value;
+
+      if (!destination) {
+        alert("Please enter a flight destination.");
+        return;
+      }
+
+      const baseFare = classType === "economy" ? 300 : 600;
+      const multiplier = tripType === "round" ? 2 : 1;
+      const totalCost = baseFare * multiplier;
+
+      if (balance >= totalCost) {
+        balance -= totalCost;
+
+        const flightDetails = {
+          to: destination,
+          tripType,
+          classType,
+          cost: totalCost
+        };
+
+        if (bookings.length > 0) {
+          bookings[bookings.length - 1].flight = flightDetails;
+        }
+
+        document.getElementById("flightResult").textContent =
+          `Flight booked to ${destination} (${classType}, ${tripType}) for ${formatZAR(totalCost)}.`;
+      } else {
+        document.getElementById("flightResult").textContent =
+          "Insufficient funds for this flight.";
+      }
+    }
+
+    function viewBookings() {
+      const list = document.getElementById("bookingList");
+      list.innerHTML = bookings.length ? "" : "<li>No bookings yet.</li>";
+
+      bookings.forEach((b, i) => {
+        const li = document.createElement("li");
+        let text = `#${i + 1}: ${b.days} day(s) at ${b.destination} via ${b.transport} – ${formatZAR(b.totalCost)}`;
+        if (b.flight) {
+          text += ` | Flight to ${b.flight.to} (${b.flight.classType}, ${b.flight.tripType}) – ${formatZAR(b.flight.cost)}`;
+        }
+        li.textContent = text;
+        list.appendChild(li);
+      });
+    }
+  </script>
+  <script>
+  localStorage.setItem("lastApp", "Booking App"); // Update label to match the link ID in index.html
+</script>
+</body>
+</html>

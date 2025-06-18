@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clothing Store</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background-color: #111;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: auto;
+    }
+
+    h2 { color: #00ffff; }
+
+    select, input[type="number"] {
+      padding: 6px;
+      font-size: 14px;
+      margin: 5px;
+      border-radius: 4px;
+      border: none;
+    }
+
+    .store-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .item-card {
+      background-color: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px;
+      width: 220px;
+      box-shadow: 0 0 8px rgba(0,255,255,0.1);
+      transition: transform 0.3s;
+    }
+
+    .item-card:hover {
+      border-color: #00ffff;
+      transform: scale(1.03);
+    }
+
+    .brand-label {
+      font-weight: bold;
+      color: #ffcc00;
+      margin-bottom: 4px;
+    }
+
+    button {
+      background-color: #00ffff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #00cccc;
+    }
+
+    ul { list-style: none; padding: 0; }
+    li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>👕 Urban Clothing Hub</h2>
+    <button onclick="window.location.href='index.html'" style="margin-bottom: 10px;">🏠 Return to Dashboard</button>
+
+    <div>
+      <label for="storeSelect">Select Store:</label>
+      <select id="storeSelect" onchange="filterByStore()">
+        <option value="all">All Stores</option>
+        <option>Nike</option>
+        <option>Adidas</option>
+        <option>Timberland</option>
+        <option>Levi's</option>
+        <option>Starter</option>
+        <option>Converse</option>
+        <option>Reebok</option>
+        <option>Pointer</option>
+        <option>Mr Price</option>
+        <option>Jet</option>
+        <option>Truworths</option>
+        <option>Markham</option>
+        <option>Pep</option>
+      </select>
+    </div>
+
+    <div class="store-grid" id="storeFront"></div>
+
+    <h3>🛒 Cart</h3>
+    <ul id="cartList"></ul>
+    <p>Total: R<span id="cartTotal">0.00</span></p>
+    <button onclick="checkout()">Checkout</button>
+    <p id="checkoutMessage"></p>
+  </div>
+
+  <script>
+    const clothingItems = [
+      { id: 1, brand: "Nike", name: "Air Max 90", type: "Sneakers", price: 1500 },
+      { id: 2, brand: "Adidas", name: "Tracksuit Jacket", type: "Jacket", price: 1200 },
+      { id: 3, brand: "Timberland", name: "6\" Premium Boots", type: "Boots", price: 1800 },
+      { id: 4, brand: "Levi's", name: "501 Jeans", type: "Denim", price: 1000 },
+      { id: 5, brand: "Starter", name: "Bomber Jacket", type: "Jacket", price: 1300 },
+      { id: 6, brand: "Converse", name: "Chuck Taylor", type: "Sneakers", price: 850 },
+      { id: 7, brand: "Reebok", name: "Club C 85", type: "Sneakers", price: 950 },
+      { id: 8, brand: "Pointer", name: "Slip-On Canvas", type: "Sneakers", price: 790 },
+      { id: 9, brand: "Mr Price", name: "Graphic Tee", type: "T-Shirt", price: 180 },
+      { id: 10, brand: "Jet", name: "Slim Fit Jeans", type: "Denim", price: 300 },
+      { id: 11, brand: "Truworths", name: "Formal Shirt", type: "Shirt", price: 450 },
+      { id: 12, brand: "Markham", name: "Blazer Jacket", type: "Jacket", price: 750 },
+      { id: 13, brand: "Pep", name: "Essentials Pack", type: "Bundle", price: 120 }
+    ];
+
+    let cart = [];
+    let total = 0;
+    let balance = 2500;
+
+    function renderStore(items = clothingItems) {
+      const store = document.getElementById("storeFront");
+      store.innerHTML = "";
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item-card";
+        div.innerHTML = `
+          <div class="brand-label">${item.brand}</div>
+          <strong>${item.name}</strong><br/>
+          <small>${item.type}</small><br/>
+          R${item.price.toFixed(2)}<br/>
+          Size:
+          <select id="size-${item.id}">
+            <option>S</option><option>M</option><option>L</option><option>XL</option>
+          </select><br/>
+          Qty:
+          <input type="number" id="qty-${item.id}" value="1" min="1" /><br/>
+          <button onclick="addToCart(${item.id})">Add to Cart</button>
+        `;
+        store.appendChild(div);
+      });
+    }
+
+    function filterByStore() {
+      const selected = document.getElementById("storeSelect").value;
+      const filtered = selected === "all"
+        ? clothingItems
+        : clothingItems.filter(item => item.brand === selected);
+      renderStore(filtered);
+    }
+
+    function addToCart(id) {
+      const item = clothingItems.find(i => i.id === id);
+      const qty = parseInt(document.getElementById(`qty-${id}`).value);
+      const size = document.getElementById(`size-${id}`).value;
+      if (qty <= 0) return;
+
+      const entry = { ...item, qty, size, subtotal: item.price * qty };
+      cart.push(entry);
+      total += entry.subtotal;
+      updateCart();
+    }
+
+    function updateCart() {
+      const list = document.getElementById("cartList");
+      list.innerHTML = "";
+      cart.forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = `${entry.qty}x ${entry.brand} ${entry.name} [${entry.size}] — R${entry.subtotal.toFixed(2)}`;
+        list.appendChild(li);
+      });
+      document.getElementById("cartTotal").textContent = total.toFixed(2);
+    }
+
+    function checkout() {
+      const msg = document.getElementById("checkoutMessage");
+      if (cart.length === 0) {
+        msg.textContent = "🛍️ Your cart is empty.";
+        return;
+      }
+      if (total > balance) {
+        msg.textContent = "❌ Not enough funds to complete purchase.";
+        return;
+      }
+      balance -= total;
+      msg.textContent = `✅ Purchase complete! Total: R${total.toFixed(2)} | Remaining: R${balance.toFixed(2)}`;
+      cart = [];
+      total = 0;
+      updateCart();
+    }
+
+    window.onload = () => {
+      localStorage.setItem("lastApp", "Clothing Store"); // Update label to match the link ID in index.html
+      renderStore();
+    };
+  </script>
+</body>
+</html>

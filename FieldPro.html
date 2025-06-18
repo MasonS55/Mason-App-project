@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FieldPro – Contractor Tool</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background-color: #111111e9;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+      color: #00ffff;
+    }
+    label, select, input, textarea {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+    }
+    textarea { resize: vertical; }
+    button {
+      background-color: #00ffff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    button:hover {
+      background-color: #00cccc;
+    }
+    .summary {
+      background-color: #1c1c1c00;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    .speed-point {
+      background: #00000000;
+      border: 2px dashed #ff0000;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🛠️ FieldPro – Contractor Billing</h2>
+    <button onclick="window.location.href='index.html'">🏠 Return to Dashboard</button>
+
+    <label for="clientName">Client Name:</label>
+    <input type="text" id="clientName" placeholder="e.g. Mr. Dlamini" />
+
+    <label for="jobType">Job Type:</label>
+    <select id="jobType">
+      <option>Plumbing</option>
+      <option>Electrician</option>
+      <option>Landscaping</option>
+      <option>Building</option>
+      <option>Carpentry</option>
+      <option>Towing</option>
+      <option>Fleet Maintenance</option>
+      <option>Machanic</option>
+    </select>
+
+    <label for="notes">Job Description:</label>
+    <textarea id="notes" rows="3" placeholder="e.g. Fix geyser leak in kitchen"></textarea>
+
+    <label for="distance">Client Distance (km):</label>
+    <input type="number" id="distance" placeholder="Enter trip distance" />
+
+    <label><input type="checkbox" id="emergency" /> 🚨 Emergency Callout</label>
+    <label><input type="checkbox" id="speedPoint" onchange="toggleMode()" /> 💳 Activate Speed Point Mode</label>
+
+    <button onclick="calculateFee()">💰 Calculate Total</button>
+
+    <div class="summary" id="summary" style="display:none;">
+      <p>Call-out Fee: R<span id="calloutFee">0.00</span></p>
+      <p>Mileage Fee: R<span id="mileageFee">0.00</span></p>
+      <p>VAT (15%): R<span id="vat">0.00</span></p>
+      <p><strong>Total: R<span id="grandTotal">0.00</span></strong></p>
+      <p id="referenceInfo"></p>
+    </div>
+
+    <div class="speed-point" id="speedView" style="display:none;">
+      <h3>Tap to Pay 💳</h3>
+      <p><strong>Total: R<span id="speedTotal">0.00</span></strong></p>
+      <p>Ref #: <span id="refCode"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const calloutRate = 250;
+    const mileageRate = 5;
+
+    function calculateFee() {
+      const dist = parseFloat(document.getElementById("distance").value);
+      const emergency = document.getElementById("emergency").checked;
+
+      const callout = emergency ? calloutRate + 100 : calloutRate;
+      const mileage = dist > 50 ? (dist - 50) * mileageRate : 0;
+      const subtotal = callout + mileage;
+      const vat = subtotal * 0.15;
+      const grand = subtotal + vat;
+
+      document.getElementById("calloutFee").textContent = callout.toFixed(2);
+      document.getElementById("mileageFee").textContent = mileage.toFixed(2);
+      document.getElementById("vat").textContent = vat.toFixed(2);
+      document.getElementById("grandTotal").textContent = grand.toFixed(2);
+      document.getElementById("speedTotal").textContent = grand.toFixed(2);
+
+      const ref = "FP" + Math.floor(100000 + Math.random() * 900000);
+      const time = new Date().toLocaleString();
+
+      document.getElementById("referenceInfo").textContent = `Job ref: ${ref} • ${time}`;
+      document.getElementById("refCode").textContent = ref;
+
+      document.getElementById("summary").style.display = "block";
+    }
+
+    function toggleMode() {
+      const speedOn = document.getElementById("speedPoint").checked;
+      document.getElementById("speedView").style.display = speedOn ? "block" : "none";
+    }
+
+    window.onload = () => {
+      localStorage.setItem("lastApp", "FieldPro App");
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .dashboard {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .app-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .app-grid a {
+      display: inline-block;
+      text-decoration: none;
+      background-color: #0078d4;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: 0.3s ease;
+      min-width: 150px;
+    }
+
+    .app-grid a:hover {
+      background-color: #005fa3;
+      transform: scale(1.05);
+    }
+
+    #recent {
+      font-style: italic;
+      color: gray;
+      margin: 10px 0 20px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      margin: 10px 5px;
+      cursor: pointer;
+      background-color: #0078d4;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>👋 Welcome, <span id="Mason"></span>Mason</h2>
+    <p id="recent"></p>
+
+ <div class="app-grid">
+  <a href="banking.html" id="Banking App">💰 Banking App </a>
+  <a href="booking.html" id="Booking App">✈️ Booking App</a>
+  <a href="grocery.html" id="Grocery App">🛒 Grocery App</a>
+  <a href="Car.html" id="Vehicle Service">🚗 Vehicle Service</a>
+  <a href="emergency.html" id="Emergency App">🚨 Emergency App</a>
+  <a href="clothing.html" id="Clothing Store">👕 Clothing Store</a>
+  <a href="restaurant.html" id="Restaurant App">🍽️ Restaurant App</a>
+  <a href="fieldpro.html" id="FieldPro App">🛠️ FieldPro App</a>
+
+
+</div>
+    </div>
+
+    <button onclick="goBackToLastApp()">↩️ Return to Last App</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </div>
+
+  <script>
+    window.onload = () => {
+      const user = localStorage.getItem("loggedInUser");
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      document.getElementById("userDisplay").textContent = user;
+
+      const last = localStorage.getItem("lastApp");
+      if (last) {
+        document.getElementById("recent").textContent = `You last visited: ${last}`;
+        const highlighted = document.getElementById(last);
+        if (highlighted) {
+          highlighted.style.border = "2px solid gold";
+          highlighted.style.backgroundColor = "#fff9cc";
+          highlighted.style.color = "#000";
+        }
+      }
+    };
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      localStorage.removeItem("lastApp");
+      window.location.href = "login.html";
+    }
+
+    function goBackToLastApp() {
+      const routes = {
+        "Banking App": "banking.html",
+        "Booking App": "booking.html",
+        "Grocery App": "grocery.html",
+        "Vehicle Service": "Car.html",
+        "Emergency App": "emergency.html"
+      };
+
+      const last = localStorage.getItem("lastApp");
+      if (routes[last]) {
+        window.location.href = routes[last];
+      } else {
+        alert("No recent app found.");
+      }
+    }
+  </script>
+</body>
+</html>

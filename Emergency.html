@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css" />
+
+  <title>Emergency System</title>
+  <style>
+    body { font-family: Arial; background-color: #fff3f3; padding: 20px; text-align: center; }
+    .emergency { border: 2px solid red; padding: 30px; max-width: 400px; margin: auto; background-color: #ffe5e5; }
+    button { padding: 15px 30px; font-size: 18px; color: white; background-color: red; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="emergency">
+    <h2>🚨 Emergency Protocol</h2>
+    <p>This action will disable banking features and alert emergency contacts.</p>
+    <button onclick="triggerEmergency()">Activate Emergency Mode</button>
+    <p id="statusMsg"></p>
+    <p id="timestamp"></p>
+  </div>
+
+  <script>
+    function triggerEmergency() {
+      document.getElementById("statusMsg").textContent = 
+        "Emergency activated. Banking access restricted. Police, vehicle tracker, and next of kin have been notified.";
+      
+      document.getElementById("timestamp").textContent = 
+        "⏱ Triggered at: " + new Date().toLocaleString();
+
+      // Simulate triggers
+      console.log("🔔 Police alert sent.");
+      console.log("🚘 Vehicle tracking engaged.");
+      console.log("📨 Message sent to next of kin.");
+      console.log("⌚ Awaiting watch confirmation...");
+
+      // In real app: call APIs, lock linked systems, notify cloud services
+    }
+    
+  </script>
+</body>
+</html>

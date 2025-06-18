@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant App</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background-color: #111;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+    h2 { color: #ffaf00; text-align: center; }
+    select, input[type="text"] {
+      padding: 8px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      margin: 5px;
+    }
+    .menu-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .menu-item {
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      width: 230px;
+      text-align: center;
+    }
+    .menu-item:hover {
+      border-color: #ffaf00;
+      transform: scale(1.02);
+    }
+    button {
+      background-color: #ffaf00;
+      border: none;
+      padding: 8px 12px;
+      margin-top: 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #e69700;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🍗 Order Your Favorites</h2>
+    <button onclick="window.location.href='index.html'">🏠 Return to Dashboard</button>
+
+    <div>
+      <label>Select Restaurant:</label>
+      <select id="restaurantSelect" onchange="loadMenu()">
+        <option value="">-- Choose a Brand --</option>
+        <option>KFC</option>
+        <option>Nando's</option>
+        <option>Pedros</option>
+        <option>Galito's</option>
+        <option>Barcelos</option>
+        <option>Fisherways</option>
+        <option>Debonairs</option>
+        <option>Pizza Baby</option>
+        <option>Romans Pizza</option>
+        <option>Pizza Perfect</option>
+        <option>Braai Room</option>
+        <option>Braai Block</option>
+      </select>
+    </div>
+
+    <div class="menu-grid" id="menuItems"></div>
+
+    <h3>🛒 Order Cart</h3>
+    <ul id="cartList"></ul>
+    <p>Total (excl. VAT): R<span id="subTotal">0.00</span></p>
+    <p>VAT (15%): R<span id="vatAmount">0.00</span></p>
+    <p>Delivery: R<span id="deliveryFee">0.00</span></p>
+    <p><strong>Grand Total: R<span id="grandTotal">0.00</span></strong></p>
+
+    <label><input type="radio" name="method" value="pickup" checked onchange="updateTotal()"> Pickup</label>
+    <label><input type="radio" name="method" value="delivery" onchange="updateTotal()"> Delivery</label><br/>
+    <input type="text" id="address" placeholder="Delivery address" style="display:none;" />
+
+    <br/>
+    <button onclick="placeOrder()">Place Order</button>
+    <p id="orderMessage"></p>
+  </div>
+
+  <script>
+    const menus = {
+      "KFC": ["Zinger Burger - 65", "Streetwise 2 - 50", "Wings Bucket - 80"],
+      "Nando's": ["1/4 Chicken & Chips - 72", "Full Chicken - 145", "Veg Bowl - 60"],
+      "Pedros": ["Flame-Grilled Chicken - 70", "Chicken Burger - 55"],
+      "Galito's": ["Grilled Chicken Breast - 68", "Pap Combo - 35"],
+      "Barcelos": ["Chicken Livers - 40", "Mild Rice Bowl - 62"],
+      "Fisherways": ["Hake & Chips - 75", "Fish Nuggets - 50"],
+      "Debonairs": ["Triple-Decker - 120", "Club Sub - 55"],
+      "Pizza Baby": ["Pepperoni Slice - 30", "Full Cheese Pizza - 90"],
+      "Romans Pizza": ["Thick Crust Medium - 85", "Ham & Pineapple - 70"],
+      "Pizza Perfect": ["Super Supreme - 99", "Meaty BBQ - 89"],
+      "Braai Room": ["Boerewors Roll - 45", "Steak Plate - 125"],
+      "Braai Block": ["Mix Grill Platter - 145", "Pap & Chakalaka - 35"]
+    };
+
+    let cart = [];
+    let deliveryFee = 0;
+
+    function loadMenu() {
+      const brand = document.getElementById("restaurantSelect").value;
+      const menu = document.getElementById("menuItems");
+      menu.innerHTML = "";
+
+      if (!brand || !menus[brand]) return;
+
+      menus[brand].forEach((itemStr, idx) => {
+        const [name, price] = itemStr.split(" - ");
+        const div = document.createElement("div");
+        div.className = "menu-item";
+        div.innerHTML = `
+          <strong>${name}</strong><br/>
+          R${price}<br/>
+          Qty: <input type="number" id="qty-${brand}-${idx}" value="1" min="1" style="width: 50px;" /><br/>
+          <button onclick="addToCart('${brand}', '${name}', ${price}, 'qty-${brand}-${idx}')">Add to Cart</button>
+        `;
+        menu.appendChild(div);
+      });
+    }
+
+    function addToCart(brand, name, price, qtyId) {
+      const qty = parseInt(document.getElementById(qtyId).value);
+      if (qty <= 0) return;
+      cart.push({ brand, name, price, qty });
+      updateCart();
+    }
+
+    function updateCart() {
+      const list = document.getElementById("cartList");
+      list.innerHTML = "";
+      cart.forEach((item, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${item.qty}x ${item.name} (${item.brand}) - R${(item.price * item.qty).toFixed(2)}`;
+        list.appendChild(li);
+      });
+      updateTotal();
+    }
+
+    function updateTotal() {
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const vat = subtotal * 0.15;
+      const method = document.querySelector("input[name='method']:checked").value;
+      deliveryFee = method === "delivery" ? 30 : 0;
+
+      document.getElementById("address").style.display = method === "delivery" ? "inline-block" : "none";
+
+      document.getElementById("subTotal").textContent = subtotal.toFixed(2);
+      document.getElementById("vatAmount").textContent = vat.toFixed(2);
+      document.getElementById("deliveryFee").textContent = deliveryFee.toFixed(2);
+      document.getElementById("grandTotal").textContent = (subtotal + vat + deliveryFee).toFixed(2);
+    }
+
+    function placeOrder() {
+      if (cart.length === 0) {
+        document.getElementById("orderMessage").textContent = "🛑 Your cart is empty.";
+        return;      }
+
+      const method = document.querySelector("input[name='method']:checked").value;
+      const address = document.getElementById("address").value.trim();
+
+      if (method === "delivery" && address === "") {
+        document.getElementById("orderMessage").textContent = "🚚 Please enter a delivery address.";
+        return;
+      }
+
+      const timestamp = new Date().toLocaleString();
+      const reference = Math.floor(Math.random() * 900000) + 100000;
+
+      const orderSummary = cart.map(item =>
+        `${item.qty}x ${item.name} (${item.brand}) - R${(item.qty * item.price).toFixed(2)}`
+      ).join("\n");
+
+      const total = (cart.reduce((sum, item) => sum + item.qty * item.price, 0) * 1.15) + deliveryFee;
+
+      document.getElementById("orderMessage").textContent =
+        `✅ Order placed at ${timestamp}\nRef #: ${reference}\nTotal: R${total.toFixed(2)}\n` +
+        (method === "delivery" ? `Delivery to: ${address}` : "Ready for pickup!");
+
+      cart = [];
+      updateCart();
+    }
+
+    window.onload = () => {
+      localStorage.setItem("lastApp", "Restaurant App"); // Update label to match the link ID in index.html
+    };
+  </script>
+</body>
+</html>

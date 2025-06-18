@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #0078D4, #00B8D9);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      width: 350px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #0078D4;
+      margin-bottom: 24px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      background-color: #0078D4;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005a9e;
+    }
+
+    #loginMessage {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .divider {
+      margin: 10px 0;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>🔐 Sign In</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Log In</button>
+
+    <div class="divider">— or —</div>
+    <button onclick="simulateBiometric()">🔓 Face / Fingerprint Login</button>
+
+    <p id="loginMessage"></p>
+  </div>
+
+  <script>
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (username && password) {
+        localStorage.setItem("loggedInUser", username);
+        window.location.href = "index.html";
+      } else {
+        document.getElementById("loginMessage").textContent = "Please enter valid login details.";
+      }
+    }
+
+    function simulateBiometric() {
+      // Replace with real WebAuthn logic if needed
+      alert("✅ Biometric authentication successful (simulated).");
+      localStorage.setItem("loggedInUser", "Mason");
+      window.location.href = "index.html";
+    }
+
+    // Auto-login redirect
+    window.onload = () => {
+      const user = localStorage.getItem("loggedInUser");
+      if (user) {
+        window.location.href = "index.html";
+      }
+    };
+  </script>
+</body>
+</html>

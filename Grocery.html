@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grocery App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>🛒 Grocery Shopping</h2>
+    <button onclick="window.location.href='index.html'" style="margin-bottom: 10px;">🏠 Return to Dashboard</button>
+    
+
+    <label for="store">Choose Store:</label>
+    <select id="store">
+      <option value="Food Lover’s">Food Lover’s</option>
+      <option value="Checkers">Checkers</option>
+      <option value="Spar">Spar</option>
+      <option value="Pick n Pay">Pick n Pay</option>
+      <option value="Shoprite">Shoprite</option>
+      <option value="Boxer">Boxer</option>
+    </select>
+
+    <label for="fulfillment">Delivery or Pickup:</label>
+    <select id="fulfillment">
+      <option value="delivery">Delivery (R50 fee)</option>
+      <option value="pickup">Pickup</option>
+    </select>
+
+    <div id="pickupOptions" style="display:none;">
+      <label for="branch">Select Pickup Branch:</label>
+      <select id="branch">
+        <option value="Rosebank">Rosebank</option>
+        <option value="Sandton">Sandton</option>
+        <option value="Fourways">Fourways</option>
+      </select>
+    </div>
+
+    <p id="fulfillmentInfo" style="font-weight:bold; color:#007700;"></p>
+
+    <input type="text" id="groceryItem" placeholder="Item name" />
+    <p id="stockInfo" style="font-size: 13px; color: #555;"></p>
+
+    <input type="number" id="groceryPrice" placeholder="Item price" />
+    <button onclick="addToCart()">Add to Cart</button>
+
+    <ul id="cartList"></ul>
+    <p>Total: R<span id="cartTotal">0.00</span></p>
+    <button onclick="purchaseGroceries()">Purchase Items</button>
+    <p id="groceryMessage"></p>
+  </div>
+
+  <script>
+    let cart = [];
+    let groceryTotal = 0;
+    let balance = 1000;
+
+    const storeHours = {
+      Rosebank: "9:00 AM – 7:00 PM",
+      Sandton: "8:30 AM – 8:00 PM",
+      Fourways: "9:00 AM – 6:00 PM"
+    };
+
+    const fakeStock = {
+      milk: true,
+      bread: true,
+      eggs: false,
+      rice: true,
+      apples: false
+    };
+
+    function formatZAR(amount) {
+      return new Intl.NumberFormat('en-ZA', {
+        style: 'currency',
+        currency: 'ZAR'
+      }).format(amount);
+    }
+
+    function addToCart() {
+      const item = document.getElementById("groceryItem").value;
+      const price = parseFloat(document.getElementById("groceryPrice").value);
+      const store = document.getElementById("store").value;
+      const fulfillment = document.getElementById("fulfillment").value;
+      const branch = document.getElementById("branch")?.value || null;
+
+      if (!item || isNaN(price) || price <= 0) {
+        alert("Enter a valid item and price.");
+        return;
+      }
+
+      cart.push({ item, price, store, fulfillment, branch });
+      updateCartTotal();
+
+      const list = document.getElementById("cartList");
+      const entry = document.createElement("li");
+      entry.textContent = `${item} (${formatZAR(price)}) from ${store} – ${fulfillment}${branch ? " @ " + branch : ""}`;
+      list.appendChild(entry);
+
+      document.getElementById("groceryItem").value = "";
+      document.getElementById("groceryPrice").value = "";
+      document.getElementById("stockInfo").textContent = "";
+    }
+
+    function updateCartTotal() {
+      let total = cart.reduce((sum, item) => sum + item.price, 0);
+      const hasDelivery = cart.some(item => item.fulfillment === "delivery");
+      if (hasDelivery) total += 50;
+      groceryTotal = total;
+      document.getElementById("cartTotal").textContent = groceryTotal.toFixed(2);
+    }
+
+    function purchaseGroceries() {
+      if (groceryTotal === 0) {
+        document.getElementById("groceryMessage").textContent = "Your cart is empty.";
+        return;
+      }
+
+      if (balance >= groceryTotal) {
+        balance -= groceryTotal;
+        document.getElementById("groceryMessage").textContent =
+          `✅ Purchase successful! You bought ${cart.length} item(s) for ${formatZAR(groceryTotal)}. Remaining balance: ${formatZAR(balance)}.`;
+        cart = [];
+        groceryTotal = 0;
+        document.getElementById("cartList").innerHTML = "";
+        document.getElementById("cartTotal").textContent = "0.00";
+      } else {
+        document.getElementById("groceryMessage").textContent = "❌ Insufficient funds for groceries.";
+      }
+    }
+
+    // Show/hide pickup options and update delivery/pickup info
+    document.getElementById("fulfillment").addEventListener("change", () => {
+      const mode = document.getElementById("fulfillment").value;
+      const info = document.getElementById("fulfillmentInfo");
+      const branch = document.getElementById("branch").value;
+      document.getElementById("pickupOptions").style.display = mode === "pickup" ? "block" : "none";
+
+      if (mode === "pickup") {
+        info.textContent = `Pickup hours at ${branch}: ${storeHours[branch]}`;
+      } else {
+        const eta = `${Math.floor(Math.random() * 90 + 30)} minutes`;
+        info.textContent = `Estimated delivery time: ${eta}`;
+      }
+    });
+
+    document.getElementById("branch").addEventListener("change", () => {
+      const branch = document.getElementById("branch").value;
+      document.getElementById("fulfillmentInfo").textContent = `Pickup hours at ${branch}: ${storeHours[branch]}`;
+    });
+
+    document.getElementById("groceryItem").addEventListener("input", () => {
+      const item = document.getElementById("groceryItem").value.toLowerCase().trim();
+      const stock = fakeStock[item];
+      const msg = document.getElementById("stockInfo");
+
+      if (!item) {
+        msg.textContent = "";
+      } else if (stock === undefined) {
+        msg.textContent = "Availability unknown – may require confirmation.";
+      } else if (stock) {
+        msg.textContent = "✅ In stock";
+      } else {
+        msg.textContent = "❌ Currently out of stock";
+      }
+    });
+  </script>
+  <script>
+  localStorage.setItem("lastApp", "Grocery App"); // Update label to match the link ID in index.html
+</script>
+</body>
+</html>

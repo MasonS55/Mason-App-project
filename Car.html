@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vehicle Service Booking</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    img.logo { max-height: 60px; margin-top: 10px; }
+    button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🚘 Book Your Vehicle Service</h2>
+    <button onclick="window.location.href='index.html'" style="margin-bottom: 10px;">🏠 Return to Dashboard</button>
+    
+
+    <label for="vehicle">Select Vehicle:</label>
+    <select id="vehicle">
+      <option value="Toyota Corolla">Toyota Corolla</option>
+      <option value="VW Polo">VW Polo</option>
+      <option value="Ford Ranger">Ford Ranger</option>
+      <option value="Hyundai i20">Hyundai i20</option>
+    </select>
+
+    <label for="serviceType">Service Type:</label>
+    <select id="serviceType">
+      <option value="Oil Change">Oil Change</option>
+      <option value="Full Service">Full Service</option>
+      <option value="Brake Check">Brake Check</option>
+      <option value="Tyre Rotation">Tyre Rotation</option>
+    </select>
+
+    <label for="serviceDate">Preferred Date:</label>
+    <input type="date" id="serviceDate" />
+
+    <label for="serviceTime">Preferred Time:</label>
+    <input type="time" id="serviceTime" />
+
+    <label for="center">Select Dealership:</label>
+    <select id="center" onchange="updateDealerStyle(this)">
+      <option value="Volkswagen (VW)" data-color="#1a237e">Volkswagen (VW)</option>
+      <option value="BMW" data-color="#00338d">BMW</option>
+      <option value="Audi" data-color="#c60000">Audi</option>
+      <option value="Mercedes-Benz" data-color="#000000">Mercedes-Benz</option>
+      <option value="Ford" data-color="#003399">Ford</option>
+      <option value="Toyota" data-color="#eb0a1e">Toyota</option>
+      <option value="Isuzu" data-color="#d50000">Isuzu</option>
+      <option value="Mazda" data-color="#005baa">Mazda</option>
+      <option value="Renault" data-color="#f4c300">Renault</option>
+      <option value="Nissan" data-color="#c2002f">Nissan</option>
+    </select>
+
+    <div id="dealerLogo"></div>
+
+    <label for="userPhone">Phone Number:</label>
+    <input type="tel" id="userPhone" placeholder="e.g. 0721234567" />
+
+    <label for="userEmail">Email Address:</label>
+    <input type="email" id="userEmail" placeholder="you@example.com" />
+
+    <button onclick="bookService()">Book Now</button>
+    <button onclick="downloadReceipt()">Download Receipt</button>
+
+    <h3>📅 My Appointments</h3>
+    <div>
+      <button onclick="showUpcoming()">Upcoming</button>
+      <button onclick="showHistory()">Past</button>
+    </div>
+    <ul id="bookingList"></ul>
+
+    <h3>🪙 Monthly Service Savings</h3>
+    <p>Saved Amount: R<span id="serviceSavings">0.00</span></p>
+    <input type="number" id="savingsAmount" placeholder="Amount to save monthly" />
+    <button onclick="addToServiceSavings()">Contribute</button>
+    <p id="savingsMessage"></p>
+  </div>
+
+  <script>
+   
+    let serviceBookings = [];
+    let servicePlanSavings = 0;
+
+    function updateDealerStyle(select) {
+      const selected = select.options[select.selectedIndex];
+      select.style.backgroundColor = selected.dataset.color;
+      select.style.color = "#fff";
+
+      const logos = {
+        "Volkswagen (VW)": "vw-logo.png",
+        BMW: "bmw-logo.png",
+        Audi: "audi-logo.png",
+        "Mercedes-Benz": "mercedes-logo.png",
+        Ford: "ford-logo.png",
+        Toyota: "toyota-logo.png",
+        Isuzu: "isuzu-logo.png",
+        Mazda: "mazda-logo.png",
+        Renault: "renault-logo.png",
+        Nissan: "nissan-logo.png"
+      };
+
+      const logo = logos[selected.value];
+      const logoDiv = document.getElementById("dealerLogo");
+      logoDiv.innerHTML = `<img class="logo" src="logos/${logo}" alt="${selected.value} Logo"/>`;
+    }
+
+    function bookService() {
+      const vehicle = document.getElementById("vehicle").value;
+      const service = document.getElementById("serviceType").value;
+      const date = document.getElementById("serviceDate").value;
+      const time = document.getElementById("serviceTime").value;
+      const center = document.getElementById("center").value;
+      const phone = document.getElementById("userPhone").value;
+      const email = document.getElementById("userEmail").value;
+
+      if (!vehicle || !service || !date || !time || !center || !phone || !email) {
+        alert("🚫 Please complete all fields.");
+        return;
+      }
+
+      serviceBookings.push({ vehicle, service, date, time, center, phone, email, timestamp: new Date(), completed: false, rating: null });
+      alert(`✅ Booking confirmed!\nSMS/Email sent to:\n📱 ${phone} | 📧 ${email}`);
+      renderBookings(false);
+    }
+
+    function renderBookings(showPast = false) {
+      const list = document.getElementById("bookingList");
+      list.innerHTML = "";
+
+      const today = new Date().toISOString().split("T")[0];
+
+      const filtered = serviceBookings.filter(b =>
+        showPast ? b.date < today : b.date >= today
+      );
+
+      if (filtered.length === 0) {
+                list.innerHTML = "<li>No appointments found.</li>";
+        return;
+      }
+
+      filtered.forEach((b, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${b.vehicle}</strong> – ${b.service} at ${b.center} on ${b.date} @ ${b.time}<br/>
+          📱 ${b.phone} | 📧 ${b.email}
+          ${showPast ? rateTemplate(i, b.rating) : `<button onclick="cancelBooking(${i})">Cancel</button>`}
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function cancelBooking(index) {
+      if (confirm("Are you sure you want to cancel this appointment?")) {
+        serviceBookings.splice(index, 1);
+        renderBookings(false);
+      }
+    }
+
+    function showUpcoming() {
+      renderBookings(false);
+    }
+
+    function showHistory() {
+      renderBookings(true);
+    }
+
+    function rateTemplate(index, rating) {
+      return `
+        <label>⭐
+          <select onchange="rateService(${index}, this.value)">
+            <option value="">${rating ? 'Rated' : 'Rate'}</option>
+            ${[1, 2, 3, 4, 5].map(r => `<option value="${r}" ${r == rating ? 'selected' : ''}>${"★".repeat(r)}</option>`).join("")}
+          </select>
+        </label>`;
+    }
+
+    function rateService(index, value) {
+      serviceBookings[index].rating = parseInt(value);
+      alert(`Thanks for rating your service ${value} star(s)!`);
+    }
+
+    function downloadReceipt() {
+      if (serviceBookings.length === 0) {
+        alert("No booking to export.");
+        return;
+      }
+
+      const latest = serviceBookings[serviceBookings.length - 1];
+      const receipt = `
+        VEHICLE SERVICE RECEIPT
+
+        Vehicle: ${latest.vehicle}
+        Service: ${latest.service}
+        Dealership: ${latest.center}
+        Date & Time: ${latest.date} @ ${latest.time}
+        Phone: ${latest.phone}
+        Email: ${latest.email}
+        Confirmation #: ${Math.floor(Math.random() * 900000 + 100000)}
+      `;
+
+      const blob = new Blob([receipt], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "ServiceReceipt.txt";
+      link.click();
+    }
+
+    function addToServiceSavings() {
+      const amount = parseFloat(document.getElementById("savingsAmount").value);
+      if (amount > 0) {
+        servicePlanSavings += amount;
+        document.getElementById("serviceSavings").textContent = servicePlanSavings.toFixed(2);
+        document.getElementById("savingsMessage").textContent = `💸 R${amount.toFixed(2)} added. Keep it up!`;
+        document.getElementById("savingsAmount").value = "";
+      } else {
+        document.getElementById("savingsMessage").textContent = "Please enter a valid amount.";
+      }
+    }
+  </script>
+  <script>
+  localStorage.setItem("lastApp", "Vechicle Service"); // Update label to match the link ID in index.html
+</script>
+</body>
+</html>
+      
+    

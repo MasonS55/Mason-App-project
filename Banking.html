@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Banking App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>💼 My Money App</h2>
+    <button onclick="window.location.href='index.html'" style="margin-bottom: 10px;">🏠 Return to Dashboard</button>
+    <p><strong>Total Net Worth:</strong> R<span id="netWorth">0.00</span></p>
+  
+
+    <!-- Main Balance -->
+    <h3>💰 Main Balance: R<span id="mainBalance">0.00</span></h3>
+    <input type="number" id="bankAmount" placeholder="Amount" />
+    <button onclick="deposit()">Deposit</button>
+    <button onclick="withdraw()">Withdraw</button>
+
+    <!-- Savings -->
+    <h3>🏦 Savings</h3>
+    <p>R<span id="savingsBalance">0.00</span></p>
+    <input type="number" id="savingsAmount" placeholder="Amount" />
+    <button onclick="saveMoney()">Add to Savings</button>
+    <button onclick="withdrawFromSavings()">Withdraw from Savings</button>
+
+    <!-- Investments -->
+    <h3>📈 Investments</h3>
+    <p>R<span id="investmentBalance">0.00</span></p>
+    <input type="number" id="investmentAmount" placeholder="Amount to Invest" />
+    <button onclick="invest()">Invest</button>
+    <button onclick="viewInvestments()">View Investments</button>
+    <ul id="investmentList"></ul>
+
+    <!-- Cards -->
+    <h3>💳 Credit Card</h3>
+    <p>Balance: R<span id="creditCardBalance">0.00</span></p>
+    <input type="number" id="creditAmount" placeholder="Spend or Pay" />
+    <button onclick="spendOnCredit()">Spend</button>
+    <button onclick="payCreditCard()">Pay Card</button>
+
+    <h3>⛽ Fuel Card</h3>
+    <p>Balance: R<span id="fuelCardBalance">0.00</span></p>
+    <input type="number" id="fuelAmount" placeholder="Spend or Top Up" />
+    <button onclick="spendFuel()">Use Fuel</button>
+    <button onclick="topUpFuel()">Top Up</button>
+
+    <!-- Spending History -->
+    <h3>🧾 Transaction History</h3>
+    <ul id="spendLog"></ul>
+  </div>
+
+  <script>
+    let balance = 1000;
+    let savings = 0;
+    let investmentBalance = 0;
+    let creditCardBalance = 0;
+    let fuelCardBalance = 0;
+    let investments = [];
+    let spendLog = [];
+
+    function formatZAR(amount) {
+      return new Intl.NumberFormat('en-ZA', {
+        style: 'currency',
+        currency: 'ZAR'
+      }).format(amount);
+    }
+
+    function updateDisplay() {
+      document.getElementById("mainBalance").textContent = balance.toFixed(2);
+      document.getElementById("savingsBalance").textContent = savings.toFixed(2);
+      document.getElementById("investmentBalance").textContent = investmentBalance.toFixed(2);
+      document.getElementById("creditCardBalance").textContent = creditCardBalance.toFixed(2);
+      document.getElementById("fuelCardBalance").textContent = fuelCardBalance.toFixed(2);
+      updateNetWorth();
+    }
+
+    function updateNetWorth() {
+      const total = balance + savings + investmentBalance - creditCardBalance + fuelCardBalance;
+      document.getElementById("netWorth").textContent = total.toFixed(2);
+    }
+
+    function addTransaction(desc, amt, type) {
+      const entry = {
+        timestamp: new Date().toLocaleString(),
+        description: desc,
+        amount: amt,
+        type
+      };
+      spendLog.unshift(entry);
+
+      const li = document.createElement("li");
+      li.textContent = `${entry.timestamp} — ${entry.description}: ${formatZAR(entry.amount)} [${entry.type}]`;
+      document.getElementById("spendLog").prepend(li);
+    }
+
+    function deposit() {
+      const amt = parseFloat(document.getElementById("bankAmount").value);
+      if (amt > 0) {
+        balance += amt;
+        addTransaction("Deposit", amt, "income");
+        updateDisplay();
+      }
+    }
+
+    function withdraw() {
+      const amt = parseFloat(document.getElementById("bankAmount").value);
+      if (amt > 0 && amt <= balance) {
+        balance -= amt;
+        addTransaction("Withdrawal", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    function saveMoney() {
+      const amt = parseFloat(document.getElementById("savingsAmount").value);
+      if (amt > 0 && amt <= balance) {
+        balance -= amt;
+        savings += amt;
+        addTransaction("Saved to Savings", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    function withdrawFromSavings() {
+      const amt = parseFloat(document.getElementById("savingsAmount").value);
+      if (amt > 0 && amt <= savings) {
+        savings -= amt;
+        balance += amt;
+        addTransaction("Withdrew from Savings", amt, "income");
+        updateDisplay();
+      }
+    }
+
+    function invest() {
+      const amt = parseFloat(document.getElementById("investmentAmount").value);
+      if (amt > 0 && amt <= balance) {
+        balance -= amt;
+        investmentBalance += amt;
+        const label = `Invested ${formatZAR(amt)} in Fund #${investments.length + 1}`;
+        investments.push(label);
+        addTransaction("Investment", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    function viewInvestments() {
+      const list = document.getElementById("investmentList");
+      list.innerHTML = investments.length ? "" : "<li>No investments yet.</li>";
+      investments.forEach(i => {
+        const li = document.createElement("li");
+        li.textContent = i;
+        list.appendChild(li);
+      });
+    }
+
+    function spendOnCredit() {
+      const amt = parseFloat(document.getElementById("creditAmount").value);
+      if (amt > 0) {
+        creditCardBalance += amt;
+        addTransaction("Credit Card Spend", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    function payCreditCard() {
+      const amt = parseFloat(document.getElementById("creditAmount").value);
+      if (amt > 0 && amt <= balance && amt <= creditCardBalance) {
+        creditCardBalance -= amt;
+        balance -= amt;
+        addTransaction("Credit Card Payment", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    function spendFuel() {
+      const amt = parseFloat(document.getElementById("fuelAmount").value);
+      if (amt > 0 && amt <= fuelCardBalance) {
+        fuelCardBalance -= amt;
+        addTransaction("Fuel Card Usage", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    function topUpFuel() {
+      const amt = parseFloat(document.getElementById("fuelAmount").value);
+      if (amt > 0 && amt <= balance) {
+        balance -= amt;
+        fuelCardBalance += amt;
+        addTransaction("Fuel Card Top-Up", amt, "expense");
+        updateDisplay();
+      }
+    }
+
+    window.onload = updateDisplay;
+  </script>
+  <script>
+  localStorage.setItem("lastApp", "Banking App"); // Update label to match the link ID in index.html
+</script>
+</body>
+</html>
